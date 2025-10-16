@@ -53,6 +53,8 @@ MGMT_NET = "lb-mgmt"
 MGMT_SUBNET = MGMT_NET
 MGMT_SUBNET_SIZE = "24"
 MGMT_SUBNET_CIDR = f"172.16.0.0/{MGMT_SUBNET_SIZE}"
+MGMT_SUBNET_START = "172.16.0.100"
+MGMT_SUBNET_END = "172.16.0.254"
 MGMT_PORT = "lb-hm-listen"
 MGMT_PORT_IP = "172.16.0.2"
 MGMT_VETH = "hm0"
@@ -221,6 +223,7 @@ def ensure_mgmt_net():
             network_id=mgmt_net.id,
             ip_version=4,
             cidr=MGMT_SUBNET_CIDR,
+            allocation_pools=[{"start": MGMT_SUBNET_START, "end": MGMT_SUBNET_END}],
         )
 
     mgmt_port = conn.network.find_port(MGMT_PORT)
