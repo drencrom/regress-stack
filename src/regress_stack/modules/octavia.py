@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 import pathlib
 import shutil
+import subprocess
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -255,33 +256,23 @@ def ensure_mgmt_net():
     core_utils.sudo(
         "ip", ["link", "set", "dev", MGMT_VETH, "address", mgmt_port.mac_address]
     )
-    core_utils.sudo(
-        "ip", ["addr", "add", f"{MGMT_PORT_IP}/{MGMT_SUBNET_SIZE}", "dev", MGMT_VETH]
-    )
+
+    try:
+        core_utils.sudo(
+            "ip", ["addr", "add", f"{MGMT_PORT_IP}/{MGMT_SUBNET_SIZE}", "dev", MGMT_VETH]
+        )
+    except subprocess.CalledProcessError as e:
+        if e.returncode != 2: # ignore if already exists
+            raise e;
 
     core_utils.sudo("ip", ["link", "set", MGMT_BR, "up"])
     core_utils.sudo("ip", ["link", "set", MGMT_VETH_BR, "up"])
 
-    rule_exists = core_utils.sudo(
-        "iptables",
-        [
-            "-C",
-            "INPUT",
-            "-i",
-            MGMT_VETH,
-            "-p",
-            "udp",
-            "--dport",
-            "5555",
-            "-j",
-            "ACCEPT",
-        ],
-    )
-    if not rule_exists:
+    try:
         core_utils.sudo(
             "iptables",
             [
-                "-I",
+                "-C",
                 "INPUT",
                 "-i",
                 MGMT_VETH,
@@ -293,6 +284,23 @@ def ensure_mgmt_net():
                 "ACCEPT",
             ],
         )
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 1: # rule does not exist
+            core_utils.sudo(
+                "iptables",
+                [
+                    "-I",
+                    "INPUT",
+                    "-i",
+                    MGMT_VETH,
+                    "-p",
+                    "udp",
+                    "--dport",
+                    "5555",
+                    "-j",
+                    "ACCEPT",
+                ],
+            )
 
     return (mgmt_net.id, mgmt_sec_grp.id)
 
