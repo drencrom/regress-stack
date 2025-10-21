@@ -49,5 +49,5 @@ def setup():
         ),
         ("DEFAULT", "transport_url", rabbitmq.transport_url(rabbit_user, rabbit_pass)),
     )
-    core_utils.sudo("barbican-manage", ["db", "upgrade"], user=SERVICE)
+    core_utils.sudo("barbican-manage", ["db", "upgrade", "--db-url", mysql.connection_string(SERVICE, db_user, db_pass)], user=SERVICE)
     core_utils.restart_service("barbican-keystone-listener", "barbican-worker")
