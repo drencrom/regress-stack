@@ -316,7 +316,7 @@ def setup():
     shutil.chown(socket_dir, SERVICE, SERVICE)
     ca_dir = pathlib.Path(CERT_DIR)
     ca_dir.mkdir(parents=True, exist_ok=True)
-    #create_ca()
+    create_ca()
     mgmt_net_id, mgmt_secgroup_id = ensure_mgmt_net()
     module_utils.cfg_set(
         CONF,
@@ -349,15 +349,15 @@ def setup():
                 "ovn_sb_connection": ovn.OVNSB_CONNECTION,
             },
         ),
-        #*module_utils.dict_to_cfg_set_args(
-        #    "certificates",
-        #    {
-        #        "cert_generator": "local_cert_generator",
-        #        "ca_certificate": AMPHORA_CA_CERT,
-        #        "ca_private_key": AMPHORA_CA_KEY,
-        #        "ca_private_key_passphrase": AMPHORA_CA_KEY_PASSPHRASE,
-        #    },
-        #),
+        *module_utils.dict_to_cfg_set_args(
+            "certificates",
+            {
+                "cert_generator": "local_cert_generator",
+                "ca_certificate": AMPHORA_CA_CERT,
+                "ca_private_key": AMPHORA_CA_KEY,
+                "ca_private_key_passphrase": AMPHORA_CA_KEY_PASSPHRASE,
+            },
+        ),
         *module_utils.dict_to_cfg_set_args(
             "health_manager",
             {
