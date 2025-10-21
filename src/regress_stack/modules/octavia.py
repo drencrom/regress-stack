@@ -262,11 +262,10 @@ def ensure_mgmt_net():
     core_utils.sudo("ip", ["link", "set", MGMT_BR, "up"])
     core_utils.sudo("ip", ["link", "set", MGMT_VETH_BR, "up"])
 
-    # TODO: Don't create the rule if it already exists
-    core_utils.sudo(
+    rule_exists = core_utils.sudo(
         "iptables",
         [
-            "-I",
+            "-C",
             "INPUT",
             "-i",
             MGMT_VETH,
@@ -278,6 +277,22 @@ def ensure_mgmt_net():
             "ACCEPT",
         ],
     )
+    if not rule_exists:
+        core_utils.sudo(
+            "iptables",
+            [
+                "-I",
+                "INPUT",
+                "-i",
+                MGMT_VETH,
+                "-p",
+                "udp",
+                "--dport",
+                "5555",
+                "-j",
+                "ACCEPT",
+            ],
+        )
 
     return (mgmt_net.id, mgmt_sec_grp.id)
 
