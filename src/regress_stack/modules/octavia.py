@@ -164,6 +164,7 @@ def ensure_mgmt_net():
         mgmt_sec_grp = conn.network.create_security_group(
             name=MGMT_SEC_GRP,
             description="regress-stack Octavia Amphora",
+            project_id=keystone.service_project(),
         )
 
     if len(mgmt_sec_grp.security_group_rules) != 3:
@@ -197,6 +198,7 @@ def ensure_mgmt_net():
         hm_sec_grp = conn.network.create_security_group(
             name=HM_SEC_GRP,
             description="regress-stack Octavia Health Monitor",
+            project_id=keystone.service_project(),
         )
 
     if len(hm_sec_grp.security_group_rules) != 1:
@@ -241,6 +243,7 @@ def ensure_mgmt_net():
                     "subnet_id": mgmt_subnet.id,
                 }
             ],
+            project_id=keystone.service_project(),
         )
 
     if not core_utils.iface_exists(MGMT_VETH):
@@ -375,8 +378,8 @@ def setup():
                 "amp_boot_network_list": mgmt_net_id,
             },
         ),
-        #("haproxy_amphora", "client_cert", AMPHORA_CA_COMBINED),
-        #("haproxy_amphora", "server_ca", AMPHORA_CA_CERT),
+        ("haproxy_amphora", "client_cert", AMPHORA_CA_COMBINED),
+        ("haproxy_amphora", "server_ca", AMPHORA_CA_CERT),
     )
     core_utils.sudo("octavia-db-manage", ["upgrade", "head"], user=SERVICE)
     core_utils.restart_service(
