@@ -167,7 +167,7 @@ def ensure_mgmt_net():
             project_id=keystone.service_project(),
         )
 
-    if len(mgmt_sec_grp.security_group_rules) != 3:
+    if len(mgmt_sec_grp.security_group_rules) != 4:
         for rule in mgmt_sec_grp.security_group_rules:
             conn.network.delete_security_group_rule(rule)
 
@@ -191,7 +191,15 @@ def ensure_mgmt_net():
             direction="ingress",
             port_range_min=9443,
             port_range_max=9443,
-       )
+        )
+
+        conn.network.create_security_group_rule(
+            security_group_id=mgmt_sec_grp.id,
+            protocol="udp",
+            direction="ingress",
+            port_range_min=67,
+            port_range_max=68,
+        )
 
     hm_sec_grp = conn.network.find_security_group(HM_SEC_GRP)
     if not hm_sec_grp:
@@ -262,11 +270,12 @@ def ensure_mgmt_net():
 
     try:
         core_utils.sudo(
-            "ip", ["addr", "add", f"{MGMT_PORT_IP}/{MGMT_SUBNET_SIZE}", "dev", MGMT_VETH]
+            "ip",
+            ["addr", "add", f"{MGMT_PORT_IP}/{MGMT_SUBNET_SIZE}", "dev", MGMT_VETH],
         )
     except subprocess.CalledProcessError as e:
-        if e.returncode != 2: # ignore if already exists
-            raise e;
+        if e.returncode != 2:  # ignore if already exists
+            raise e
 
     core_utils.sudo("ip", ["link", "set", MGMT_BR, "up"])
     core_utils.sudo("ip", ["link", "set", MGMT_VETH_BR, "up"])
@@ -288,7 +297,7 @@ def ensure_mgmt_net():
             ],
         )
     except subprocess.CalledProcessError as e:
-        if e.returncode == 1: # rule does not exist
+        if e.returncode == 1:  # rule does not exist
             core_utils.sudo(
                 "iptables",
                 [
